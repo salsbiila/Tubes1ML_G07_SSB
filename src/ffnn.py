@@ -1,10 +1,13 @@
 import numpy as np
 from weight_initializer import WeightInitializer
+from activation_function import ActivationFunction
+from loss_function import LossFunction
 
 class FFNN:
-    def __init__(self, layer_sizes, activation="relu", weight_init="xavier", seed=None):
+    def __init__(self, layer_sizes, activation="relu", output_activation="softmax", weight_init="xavier", seed=None):
         self.layer_sizes = layer_sizes # ukuran layer, cth: [input_size, hidden1, hidden2, output_size]
         self.activation = activation # fungsi aktivasi
+        self.output_activation = output_activation # fungsi aktivasi output layer
         self.weight_init = weight_init # metode inisialisasi bobot ('zero', 'uniform', 'normal', 'xavier', 'he')
         self.seed = seed
 
@@ -44,10 +47,35 @@ class FFNN:
             biases[f"b{i}"] = b
         
         return weights, biases
+    
+    def forward(self, x):
+        o = x
+        self.cache = {"o0": o}
 
-layer_sizes = [3, 5, 2]  # 3 input, 5 hidden, 2 output
-ffnn = FFNN(layer_sizes, weight_init="uniform", seed=42)
+        for i in range(1, len(self.layer_sizes)):
+            W = self.weights[f"W{i}"]
+            b = self.biases[f"b{i}"]
 
-# print bobot
-print(ffnn.weights)  
-print(ffnn.biases)
+            sigma = np.dot(o, W) + b
+        
+            if i == len(self.layer_sizes) - 1:
+                activation = getattr(ActivationFunction, self.output_activation)
+            else:
+                activation = getattr(ActivationFunction, self.activation)
+            o = activation(sigma)
+
+            self.cache[f"sigma{i}"] = sigma
+            self.cache[f"o{i}"] = o
+
+        return o
+
+layer_sizes = [3, 6, 4, 2]
+batch = np.random.rand(5, 3)
+print(batch)
+ffnn = FFNN(layer_sizes, activation="tanh", seed=42)
+print("result:")
+print(ffnn.forward(batch))
+
+# # print bobot
+# print(ffnn.weights)  
+# print(ffnn.biases)
