@@ -2,6 +2,9 @@ import numpy as np
 
 class ActivationFunction:
     @staticmethod
+    def linear(x):
+        return np.ones_like(x)
+
     def relu(x):
         return np.maximum(0, x)
 
@@ -13,10 +16,10 @@ class ActivationFunction:
     def tanh(x):
         return np.tanh(x)
     
-    # @staticmethod
-    # def softmax(x):
-    #     exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-    #     return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+    @staticmethod
+    def softmax(x):
+        exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
     
     # @staticmethod
     # def softplus(x):
