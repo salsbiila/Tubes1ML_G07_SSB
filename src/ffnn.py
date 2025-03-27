@@ -4,14 +4,20 @@ from activation_function import ActivationFunction
 from loss_function import LossFunction
 
 class FFNN:
-    def __init__(self, layer_sizes, activation="relu", output_activation="softmax", weight_init="xavier", seed=None):
+    def __init__(self, layer_sizes, activation="relu", output_activation="softmax", weight_init="xavier", loss_function="mse", seed=None):
         self.layer_sizes = layer_sizes # ukuran layer, cth: [input_size, hidden1, hidden2, output_size]
         self.activation = activation # fungsi aktivasi
         self.output_activation = output_activation # fungsi aktivasi output layer
+        self.loss_function = loss_function  # fungsi loss
         self.weight_init = weight_init # metode inisialisasi bobot ('zero', 'uniform', 'normal', 'xavier', 'he')
         self.seed = seed
 
-        # inisialisasi bobot dan bias
+        # inisialisasi
+        self.weights = {}
+        self.biases = {}
+        self.sigma = {}  # untuk menyimpan nilai-nilai untuk backward propagation
+        self.o = {}  # untuk menyimpan nilai-nilai untuk backward propagation
+        
         self.weights, self.biases = self.setup_weights()
     
     def setup_weights(self):
@@ -43,18 +49,28 @@ class FFNN:
             else:
                 raise ValueError("Metode inisialisasi tidak dikenal.")
 
-            weights[f"W{i}"] = W
-            biases[f"b{i}"] = b
+            weights[i] = W
+            biases[i] = b
         
         return weights, biases
     
+    def compute_loss(self, y_true, y_pred):
+        if self.loss_function == "mse":
+            return LossFunction.mse(y_true, y_pred)
+        elif self.loss_function == "binary_cross_entropy":
+            return LossFunction.binary_cross_entropy(y_true, y_pred)
+        elif self.loss_function == "categorical_cross_entropy":
+            return LossFunction.categorical_cross_entropy(y_true, y_pred)
+        else:
+            raise ValueError(f"Loss function '{self.loss_function}' not recognized.")
+        
     def forward(self, x):
         o = x
-        self.cache = {"o0": o}
+        self.o[0] =  o
 
         for i in range(1, len(self.layer_sizes)):
-            W = self.weights[f"W{i}"]
-            b = self.biases[f"b{i}"]
+            W = self.weights[i]
+            b = self.biases[i]
 
             sigma = np.dot(o, W) + b
         
@@ -64,18 +80,51 @@ class FFNN:
                 activation = getattr(ActivationFunction, self.activation)
             o = activation(sigma)
 
-            self.cache[f"sigma{i}"] = sigma
-            self.cache[f"o{i}"] = o
 
+            self.sigma[i] = sigma
+            self.o[i] = o
+        print(self.sigma)
+        print(self.o)
         return o
 
-layer_sizes = [3, 6, 4, 2]
-batch = np.random.rand(5, 3)
-print(batch)
-ffnn = FFNN(layer_sizes, activation="tanh", seed=42)
-print("result:")
-print(ffnn.forward(batch))
+    def print_model(self):
+        print("Model Structure:")
+        print(f"Input Layer: {self.layer_sizes[0]} neurons")
+        for i in range(1, len(self.layer_sizes)):
+            print(f"Layer {i}:")
+            print(f"  - Neurons: {self.layer_sizes[i]}")
+            print(f"  - Activation: {self.activation}")
+            print(f"  - Weights shape: {self.weights[i].shape}")
+            print(f"  - Bias shape: {self.biases[i].shape}")
+            
+            # Print a small sample of weights and gradients if they are large
+            if self.weights[i].size > 10:
+                print(f"  - Sample weights: {self.weights[i].flatten()[:5]} ...")
+            else:
+                print(f"  - Weights: {self.weights[i]}")
+            if self.biases[i].size > 10:
+                print(f"  - Sample biases: {self.biases[i].flatten()[:5]} ...")
+            else:
+                print(f"  - Biases: {self.biases[i]}")
+
 
 # # print bobot
 # print(ffnn.weights)  
 # print(ffnn.biases)
+
+if __name__ == "__main__":
+    # Create a simple network with 2 inputs, 3 neurons in hidden layer, and 1 output
+    # layer_sizes = [2, 3,3, 1]
+    # model = FFNN(layer_sizes, activation=["linear"], loss_function="mse", weight_init="zero", seed=42)
+    
+    # # Print model structure
+    # model.print_model()
+
+
+    layer_sizes = [3, 2, 2, 1]
+    batch = np.random.rand(1, 3)
+    print(batch)
+    ffnn = FFNN(layer_sizes, activation="relu",output_activation="softmax", loss_function="mse", weight_init="uniform", seed=42)
+    ffnn.print_model()
+    print("result:")
+    print(ffnn.forward(batch))
