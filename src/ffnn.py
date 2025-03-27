@@ -2,7 +2,7 @@ import numpy as np
 from weight_initializer import WeightInitializer
 from activation_function import ActivationFunction
 from loss_function import LossFunction
-from network_visualizer import NetworkVisualizer
+from visualizer import Visualizer
 
 class FFNN:
     def __init__(self, layer_sizes, activation="relu", weight_init="xavier", loss_function="mse", seed=None):
@@ -113,8 +113,12 @@ class FFNN:
                 print(f"  - Sample biases: {self.biases[i].flatten()[:5]} ...")
             else:
                 print(f"  - Biases: {self.biases[i]}")
+
     def visualize_model(self, show_weights=True, show_gradients=True, figsize=(12, 10), enable_zoom=True):
-        return NetworkVisualizer.visualize_network(self, show_weights, show_gradients, figsize, enable_zoom)
+        return Visualizer.visualize_network(self, show_weights, show_gradients, figsize, enable_zoom)
+    
+    def visualize_weight_distribution(self, layers=None, include_bias=True):
+        return Visualizer.plot_weight_distribution(self, layers, include_bias)
 
 
 # # print bobot
@@ -134,8 +138,8 @@ if __name__ == "__main__":
     activations= ["relu", "relu", "relu", "relu", "relu", "relu", "relu", "relu", "relu", "relu", "relu"]
     batch = np.random.rand(1, 3)
     print(batch)
-    ffnn = FFNN(layer_sizes, activation= activations, loss_function="mse", weight_init="zero", seed=42)
+    ffnn = FFNN(layer_sizes, activation= activations, loss_function="mse", weight_init="xavier", seed=42)
     ffnn.print_model()
     print("result:")
     print(ffnn.forward(batch))
-    ffnn.visualize_model()
+    ffnn.visualize_weight_distribution()
