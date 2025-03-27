@@ -4,7 +4,7 @@ from weight_initializer import WeightInitializer
 from activation_function import ActivationFunction
 from loss_function import LossFunction
 from backpropagation import BackPropagation
-from visualizer import Visualizer
+from visualizer_2 import Visualizer2
 
 class FFNN:
     def __init__(self, layer_sizes, activation=None, weight_init="xavier", loss_function="mse", seed=None):
@@ -242,13 +242,13 @@ class FFNN:
         return model
     
     def visualize_model(self, show_weights=True, show_gradients=True, figsize=(12, 10), enable_zoom=True):
-        return Visualizer.visualize_network(self, show_weights, show_gradients, figsize, enable_zoom)
+        return Visualizer2.visualize_network(self, show_weights, show_gradients, figsize, enable_zoom)
     
     def visualize_weight_distribution(self, layers=None, include_bias=True):
-        return Visualizer.plot_weight_distribution(self, layers, include_bias)
+        return Visualizer2.plot_weight_distribution(self, layers, include_bias)
     
     def visualize_gradient_weight_distribution(self, layers=None, include_bias=True):
-        return Visualizer.plot_gradient_weight_distribution(self, layers, include_bias)
+        return Visualizer2.plot_gradient_weight_distribution(self, layers, include_bias)
 
 if __name__ == "__main__":
     # Testing

@@ -4,7 +4,7 @@ import networkx as nx
 from matplotlib.widgets import Button
 from scipy import stats
 
-class Visualizer:
+class Visualizer2:
     @staticmethod
     def visualize_network(model, show_weights=True, show_gradients=True, figsize=(12, 10), enable_zoom=True):
         
