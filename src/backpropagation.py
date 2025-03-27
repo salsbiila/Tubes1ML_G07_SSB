@@ -42,7 +42,7 @@ class BackPropagation:
                 delta = delta * df_dz
             
             # dL/dW = dL/dy_pred * df/dz * dz/dW = delta * aktivasi layer sebelumnya
-            gradients["weights"][layer] = np.dot(activations[layer-1].T, delta)
+            gradients["weights"][layer] = activations[layer-1].T @ delta
             
             # dL/db = dL/dy_pred * df/dz * dz/db = delta
             gradients["biases"][layer] = np.sum(delta, axis=0, keepdims=True)
@@ -50,7 +50,7 @@ class BackPropagation:
 
             if layer > 1:
                 # delta untuk layer sebelumnya = delta sekarang * weights sekarang
-                delta = np.dot(delta, model.weights[layer].T)
+                delta = delta @ model.weights[layer].T
         
         return gradients
     

@@ -134,8 +134,6 @@ class FFNN:
             self.bias_gradients[i] = gradients["biases"][i]
         return loss
     
-
-    
     def train(self, X_train, y_train, X_val=None, y_val=None, batch_size=32, learning_rate=0.01, epochs=100, verbose=1):
 
         n_samples = X_train.shape[0]
