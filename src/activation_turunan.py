@@ -22,8 +22,29 @@ class ActivationDerivative:
     @staticmethod
     def softmax(x, y_pred=None):
         if y_pred is None:
-            # Hitung softmax jika belum dihitung
             exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
             y_pred = exp_x / np.sum(exp_x, axis=1, keepdims=True)
 
         return y_pred
+    
+    @staticmethod
+    def softplus_derivative(x):
+        return 1 / (1 + np.exp(-x))
+    
+    def elu_derivative(x, alpha=1.0):
+        return np.where(x > 0, 1, alpha * np.exp(x))
+    
+    @staticmethod
+    def selu_derivative(x):
+        alpha = 1.67326
+        scale = 1.0507
+        return np.where(x > 0, scale, scale * alpha * np.exp(x))
+    
+    @staticmethod
+    def prelu_derivative(x, alpha=0.01):
+        return np.where(x > 0, 1, alpha)
+    
+    @staticmethod
+    def swish_derivative(x):
+        sig = 1 / (1 + np.exp(-x))
+        return sig + x * sig * (1 - sig)

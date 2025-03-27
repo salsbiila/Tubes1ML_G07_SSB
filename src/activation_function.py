@@ -13,27 +13,29 @@ class ActivationFunction:
     def tanh(x):
         return np.tanh(x)
     
-    # @staticmethod
-    # def softmax(x):
-    #     exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-    #     return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+    @staticmethod
+    def softmax(x):
+        exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
     
-    # @staticmethod
-    # def softplus(x):
-    #     return np.log(1 + np.exp(x))
+    @staticmethod
+    def softplus(x):
+        return np.log1p(np.exp(-np.abs(x))) + np.maximum(x, 0)
     
-    # @staticmethod
-    # def elu(x, alpha=1.0):
-    #     return np.where(x > 0, x, alpha * (np.exp(x) - 1))
+    @staticmethod
+    def elu(x, alpha=1.0):
+        return np.where(x > 0, x, alpha * (np.exp(x) - 1))
     
-    # @staticmethod
-    # def selu(x):
-    #     return np.where(x > 0, 1.0507 * x, 1.0507 * 1.67326 * (np.exp(x) - 1))
+    @staticmethod
+    def selu(x):
+        alpha = 1.67326
+        scale = 1.0507
+        return np.where(x > 0, 1.0507 * x, 1.0507 * 1.67326 * (np.exp(x) - 1))
     
-    # @staticmethod
-    # def prelu(x, alpha=0.01):
-    #     return np.where(x > 0, x, alpha * x)
+    @staticmethod
+    def prelu(x, alpha=0.01):
+        return np.where(x > 0, x, alpha * x)
     
-    # @staticmethod
-    # def swish(x):
-    #     return x * 1 / (1 + np.exp(-x))
+    @staticmethod
+    def swish(x):
+        return x * 1 / (1 + np.exp(-x))
