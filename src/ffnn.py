@@ -2,6 +2,7 @@ import numpy as np
 from weight_initializer import WeightInitializer
 from activation_function import ActivationFunction
 from loss_function import LossFunction
+from network_visualizer import NetworkVisualizer
 
 class FFNN:
     def __init__(self, layer_sizes, activation="relu", weight_init="xavier", loss_function="mse", seed=None):
@@ -18,6 +19,14 @@ class FFNN:
         self.o = {}  # untuk menyimpan nilai-nilai untuk backward propagation
         
         self.weights, self.biases = self.setup_weights()
+
+        # Inisialisasi gradien bobot dan bias
+        self.weight_gradient = {}
+        self.bias_gradient = {}
+
+        for i in range(1, len(self.layer_sizes)):
+            self.weight_gradient[i] = np.zeros_like(self.weights[i])  # Gradien bobot
+            self.bias_gradient[i] = np.zeros_like(self.biases[i])  # Gradien bias
     
     def setup_weights(self):
         weights = {}
@@ -104,6 +113,8 @@ class FFNN:
                 print(f"  - Sample biases: {self.biases[i].flatten()[:5]} ...")
             else:
                 print(f"  - Biases: {self.biases[i]}")
+    def visualize_model(self, show_weights=True, show_gradients=True, figsize=(12, 10), enable_zoom=True):
+        return NetworkVisualizer.visualize_network(self, show_weights, show_gradients, figsize, enable_zoom)
 
 
 # # print bobot
@@ -119,11 +130,12 @@ if __name__ == "__main__":
     # model.print_model()
 
 
-    layer_sizes = [3, 2, 2, 1]
-    activations= ["relu", "relu", "relu"]
+    layer_sizes = [3, 2, 2, 3, 1, 2, 2, 3, 1, 2, 3, 1]
+    activations= ["relu", "relu", "relu", "relu", "relu", "relu", "relu", "relu", "relu", "relu", "relu"]
     batch = np.random.rand(1, 3)
     print(batch)
     ffnn = FFNN(layer_sizes, activation= activations, loss_function="mse", weight_init="zero", seed=42)
     ffnn.print_model()
     print("result:")
     print(ffnn.forward(batch))
+    ffnn.visualize_model()
