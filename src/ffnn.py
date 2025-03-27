@@ -241,8 +241,8 @@ class FFNN:
         print(f"Model loaded from {filepath} 💾")
         return model
     
-    def visualize_model(self, show_weights=True, show_gradients=True, figsize=(12, 10), enable_zoom=True):
-        return Visualizer.visualize_network(self, show_weights, show_gradients, figsize, enable_zoom)
+    def visualize_model(self, show_gradients=True):
+        return Visualizer.visualize_network(self, show_gradients=show_gradients)
     
     def visualize_weight_distribution(self, layers=None, include_bias=True):
         return Visualizer.plot_weight_distribution(self, layers, include_bias)
