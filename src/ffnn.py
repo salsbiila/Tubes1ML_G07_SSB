@@ -1,4 +1,5 @@
 import numpy as np
+import json, os
 from weight_initializer import WeightInitializer
 from activation_function import ActivationFunction
 from loss_function import LossFunction
@@ -202,6 +203,42 @@ class FFNN:
                 print(f"  - Sample biases: {self.biases[i].flatten()[:5]} ...")
             else:
                 print(f"  - Biases: {self.biases[i]}")
+    
+    def save(self, filepath):
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        model_data = {
+            "layer_sizes": self.layer_sizes,
+            "activation": self.activation,
+            "weight_init": self.weight_init,
+            "loss_function": self.loss_function,
+            "seed": self.seed,
+            "weights": {str(k): self.weights[k].tolist() for k in self.weights},
+            "biases": {str(k): self.biases[k].tolist() for k in self.biases}
+        }
+
+        with open(filepath, "w") as f:
+            json.dump(model_data, f, indent=4)
+        print(f"Model saved to {filepath}")
+
+    @classmethod
+    def load(cls, filepath):
+        with open(filepath, "r") as f:
+            model_data = json.load(f)
+
+        model = cls(
+            layer_sizes=model_data["layer_sizes"],
+            activation=model_data["activation"],
+            weight_init=model_data["weight_init"],
+            loss_function=model_data["loss_function"],
+            seed=model_data["seed"]
+        )
+
+        model.weights = {int(k): np.array(v) for k, v in model_data["weights"].items()}
+        model.biases = {int(k): np.array(v) for k, v in model_data["biases"].items()}
+
+        print(f"Model loaded from {filepath} 💾")
+        return model
 
 if __name__ == "__main__":
     # Testing
@@ -220,4 +257,13 @@ if __name__ == "__main__":
     predictions = model.predict(X)
     print("\nPredictions:")
     for i, pred in enumerate(predictions):
+        print(f"Input: {X[i]} -> Predicted: {pred[0]:.4f}, Actual: {y[i][0]}")
+
+    model.save("model/model.json")
+    print("======================================== loaded model ========================================")
+    loaded_model = FFNN.load("model/model.json")
+    loaded_model.print_model()
+    new_predictions = loaded_model.predict(X)
+    print("\nPredictions:")
+    for i, pred in enumerate(new_predictions):
         print(f"Input: {X[i]} -> Predicted: {pred[0]:.4f}, Actual: {y[i][0]}")
