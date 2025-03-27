@@ -135,7 +135,7 @@ class Visualizer:
             fig = plt.figure(figsize=figsize)
             ax = plt.gca()
 
-        layer_colors = ['blue', 'pink', 'orange', 'yellow']
+        layer_colors = ['#4285F4', '#34A853', '#FBBC05', '#EA4335']
         node_colors = []
 
         for node in all_nodes : 
@@ -146,7 +146,7 @@ class Visualizer:
             
             # warna bias node
             if isinstance(layer, float) and layer % 1 != 0:
-                node_colors.append('gray') 
+                node_colors.append('#7986CB') 
             else:
                 node_colors.append(layer_colors[color_idx])
         
