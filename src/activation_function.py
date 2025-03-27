@@ -2,6 +2,9 @@ import numpy as np
 
 class ActivationFunction:
     @staticmethod
+    def linear(x):
+        return np.ones_like(x)
+
     def relu(x):
         return np.maximum(0, x)
 
@@ -20,7 +23,7 @@ class ActivationFunction:
     
     @staticmethod
     def softplus(x):
-        return np.log(1 + np.exp(x))
+        return np.log1p(np.exp(-np.abs(x))) + np.maximum(x, 0)
     
     @staticmethod
     def elu(x, alpha=1.0):
@@ -28,6 +31,8 @@ class ActivationFunction:
     
     @staticmethod
     def selu(x):
+        alpha = 1.67326
+        scale = 1.0507
         return np.where(x > 0, 1.0507 * x, 1.0507 * 1.67326 * (np.exp(x) - 1))
     
     @staticmethod
