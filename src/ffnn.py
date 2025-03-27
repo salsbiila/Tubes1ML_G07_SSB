@@ -4,10 +4,9 @@ from activation_function import ActivationFunction
 from loss_function import LossFunction
 
 class FFNN:
-    def __init__(self, layer_sizes, activation="relu", output_activation="softmax", weight_init="xavier", loss_function="mse", seed=None):
+    def __init__(self, layer_sizes, activation="relu", weight_init="xavier", loss_function="mse", seed=None):
         self.layer_sizes = layer_sizes # ukuran layer, cth: [input_size, hidden1, hidden2, output_size]
         self.activation = activation # fungsi aktivasi
-        self.output_activation = output_activation # fungsi aktivasi output layer
         self.loss_function = loss_function  # fungsi loss
         self.weight_init = weight_init # metode inisialisasi bobot ('zero', 'uniform', 'normal', 'xavier', 'he')
         self.seed = seed
@@ -74,10 +73,9 @@ class FFNN:
 
             sigma = np.dot(o, W) + b
         
-            if i == len(self.layer_sizes) - 1:
-                activation = getattr(ActivationFunction, self.output_activation)
-            else:
-                activation = getattr(ActivationFunction, self.activation)
+            # Apply activation function
+            activation_name = self.activation[i-1]
+            activation = getattr(ActivationFunction, activation_name)
             o = activation(sigma)
 
 
@@ -122,9 +120,10 @@ if __name__ == "__main__":
 
 
     layer_sizes = [3, 2, 2, 1]
+    activations= ["relu", "relu", "relu"]
     batch = np.random.rand(1, 3)
     print(batch)
-    ffnn = FFNN(layer_sizes, activation="relu",output_activation="softmax", loss_function="mse", weight_init="uniform", seed=42)
+    ffnn = FFNN(layer_sizes, activation= activations, loss_function="mse", weight_init="zero", seed=42)
     ffnn.print_model()
     print("result:")
     print(ffnn.forward(batch))
