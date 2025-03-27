@@ -16,16 +16,19 @@ class ActivationDerivative:
     
     @staticmethod
     def tanh(x):
-        tanh_x = np.tanh(x)
-        return 1 - np.power(tanh_x, 2)
+        return 1 - np.tanh(x)**2
     
     @staticmethod
     def softmax(x, y_pred=None):
         if y_pred is None:
-            exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-            y_pred = exp_x / np.sum(exp_x, axis=1, keepdims=True)
-
-        return y_pred
+            shifted_x = x - np.max(x, axis=-1, keepdims=True)
+            exp_x = np.exp(shifted_x)
+            y_pred = exp_x / np.sum(exp_x, axis=-1, keepdims=True)
+        
+        s = y_pred.reshape(-1, 1)
+        jacobian = np.diagflat(y_pred) - np.dot(s, s.T)
+        
+        return jacobian
     
     @staticmethod
     def softplus_derivative(x):

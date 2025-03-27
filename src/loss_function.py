@@ -8,8 +8,6 @@ class LossFunction:
             raise ValueError(f"Shapes not match. y_true= {y_true.shape}. y_pred= {y_pred.shape}")
         
         loss = np.mean(np.sum((y_pred - y_true) ** 2, axis=1))
-    
-        
         return loss
     
     @staticmethod
@@ -20,8 +18,6 @@ class LossFunction:
         
         y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
         loss = -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
-
-        
         return loss
     
     @staticmethod
@@ -33,6 +29,4 @@ class LossFunction:
         
         y_pred = np.clip(y_pred, epsilon, 1.0)
         loss = -np.mean(np.sum(y_true * np.log(y_pred), axis=1))
-        
-        
         return loss

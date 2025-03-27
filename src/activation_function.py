@@ -2,6 +2,9 @@ import numpy as np
 
 class ActivationFunction:
     @staticmethod
+    def linear(x):
+        return np.ones_like(x)
+
     def relu(x):
         return np.maximum(0, x)
 
