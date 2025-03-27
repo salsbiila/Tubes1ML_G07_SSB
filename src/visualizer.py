@@ -96,8 +96,8 @@ class Visualizer:
 
                     # ambil nilai gradien bobot
                     gradient_val = None
-                    if hasattr(model, 'weight_gradient') and i in model.weight_gradient:
-                        gradient_val = model.weight_gradient[i][j, k]
+                    if hasattr(model, 'weight_gradients') and i in model.weight_gradients:
+                        gradient_val = model.weight_gradients[i][j, k]
                     
                     # tambah edge dengan informasi bobot dan gradien bobot
                     G.add_edge(source, target, weight=weight_val, gradient=gradient_val)
@@ -114,8 +114,8 @@ class Visualizer:
 
                 # ambil gradien bias
                 bias_gradient_val = None
-                if hasattr(model, 'bias_gradient') and i in model.bias_gradient:
-                    bias_gradient_val = model.bias_gradient[i][0, k]
+                if hasattr(model, 'bias_gradients') and i in model.bias_gradients:
+                    bias_gradient_val = model.bias_gradients[i][0, k]
                 
                 # tambah edge dengan informasi bobot bias dan gradien bobot bias
                 G.add_edge(bias_id, target, weight=bias_val, gradient=bias_gradient_val)
@@ -238,55 +238,6 @@ class Visualizer:
                            fontsize=4,
                            bbox=dict(facecolor='white', alpha=0.7, edgecolor='gray', boxstyle='round'),
                            ha='center', va='center', clip_on=True)
-            # edge_labels = {}
-            
-            # for u, v, data in G.edges(data=True) :
-            #     label = ""
-
-            #     # tambah info weight
-            #     if show_weights: 
-            #         label += f"W: {data['weight']:.2f}"
-
-            #     #tambah info gradient
-            #     if show_gradients and 'gradient' in data and data['gradient'] is not None:
-            #         if label:
-            #             label += "\n"
-            #         label += f"∇W: {data['gradient']:.2f}"
-                
-            #     if label:
-            #         edge_labels[(u, v)] = label
-            # # edge_label_positions = create_edge_label_positions(G, pos)
-            # nx.draw_networkx_edge_labels(
-            #     G, 
-            #     # edge_label_positions,  # Use custom positions instead of pos
-            #     edge_labels=edge_labels, 
-            #     font_size=7, 
-            #     font_color='black', 
-            #     bbox=dict(alpha=0.7, boxstyle='round', ec='gray', fc='white'),
-            #     rotate=False  # Do not rotate labels to improve readability
-            # )
-            # # nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7, font_color='black', bbox=dict(alpha=0.7, boxstyle='round', ec='gray', fc='white'))
-        
-        # # Create legend
-        # legend_elements = [
-        #     mpatches.Patch(color='#7986CB', label='Bias'),
-        #     mpatches.Patch(color=layer_colors[0], label='Input Layer'),
-        #     mpatches.Patch(color=layer_colors[1], label='Hidden Layer 1'),
-        # ]
-        
-        # # Add more legend elements if there are more layers
-        # for i in range(2, len(layer_sizes) - 1):
-        #     color_idx = i % len(layer_colors)
-        #     legend_elements.append(mpatches.Patch(color=layer_colors[color_idx], 
-        #                                         label=f'Hidden Layer {i}'))
-        
-        # # Add output layer to legend
-        # legend_elements.append(mpatches.Patch(
-        #     color=layer_colors[(len(layer_sizes) - 1) % len(layer_colors)], 
-        #     label='Output Layer'))
-        
-        # # Add legend to plot
-        # ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1.15, 1))
         
         # plot title
         ax.set_title(f"Neural Network Architecture\nJumlah Neuron Tiap Layer : {' → '.join([str(size) for size in layer_sizes])}")
@@ -364,7 +315,7 @@ class Visualizer:
         
         return fig
     
-
+    @staticmethod
     def plot_weight_distribution(model, layers=None, include_bias=True):
         if layers is None:
             # kalau tidak ada input layer, display distribusi semua layer
@@ -410,40 +361,36 @@ class Visualizer:
                     biases = model.biases[layer].flatten()
                     all_params = np.concatenate([weights, biases])
                     
-                    # Plot histogram with density=True for normalized y-axis
+                    # plot histogram
                     ax.hist(all_params, bins=30, alpha=0.7, color='blue', 
                             label='Weights (incl. Bias)', density=True)
                     
-                    # Add KDE line for distribution shape
+                    # KDE line untuk distribution shape
                     kde = stats.gaussian_kde(all_params)
                     x_grid = np.linspace(min(all_params), max(all_params), 1000)
                     ax.plot(x_grid, kde(x_grid), 'r-', linewidth=2, label='Density')
                     
-                    # Calculate stats based on all parameters
+                    # calculate stats based on all parameters
                     data_for_stats = all_params
                 else:
-                    # Plot histogram with density=True
+                    # plot histogram with density=True
                     ax.hist(weights, bins=30, alpha=0.7, color='blue', density=True)
                     
-                    # Add KDE line for distribution shape
                     kde = stats.gaussian_kde(weights)
                     x_grid = np.linspace(min(weights), max(weights), 1000)
                     ax.plot(x_grid, kde(x_grid), 'r-', linewidth=2, label='Density')
                     
-                    # Calculate stats based on weights only
+                    # calculate stats based on weights only
                     data_for_stats = weights
                 
-                # Add statistics
+                # statistics
                 mean = np.mean(data_for_stats)
                 std = np.std(data_for_stats)
                 min_val = np.min(data_for_stats)
                 max_val = np.max(data_for_stats)
-                
-                # Calculate skewness to determine distribution shape
+                # skewness to determine distribution shape
                 skewness = stats.skew(data_for_stats)
-                kurtosis = stats.kurtosis(data_for_stats)
                 
-                # Determine distribution shape based on skewness
                 if abs(skewness) < 0.5:
                     shape = "Normal"
                 elif skewness > 0.5:
@@ -459,7 +406,7 @@ class Visualizer:
                         transform=ax.transAxes, verticalalignment='top',
                         bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
                 
-                # Add vertical line for mean
+                # garis MEAN
                 ax.axvline(mean, color='green', linestyle='dashed', linewidth=1, label='Mean')
                 
                 ax.set_title(f'Layer {layer} Weight Distribution')
@@ -467,10 +414,73 @@ class Visualizer:
                 ax.set_ylabel('Density')
                 ax.legend(loc='upper right')
         
-        # Hide unused subplots
+        # hide unused subplots
         if n_layers > 1:
             for j in range(i+1, len(axes_flat)):
                 axes_flat[j].set_visible(False)
+        
+        plt.tight_layout(rect=[0, 0, 1, 0.97])  
+        plt.show()
+        
+        return fig
+    
+    @staticmethod
+    def plot_gradient_weight_distribution(model, layers=None, include_bias=True):
+        if layers is None:
+            layers = list(range(1, len(model.layer_sizes)))
+        
+        valid_layers = [layer for layer in layers if 1 <= layer < len(model.layer_sizes)]
+        if not valid_layers:
+            print("No valid layers to plot.")
+            return None
+        
+        n_layers = len(valid_layers)
+        fig_cols = min(3, n_layers)
+        fig_rows = (n_layers + fig_cols - 1) // fig_cols
+        
+        fig, axes = plt.subplots(fig_rows, fig_cols, figsize=(5*fig_cols, 4*fig_rows))
+        fig.suptitle('Gradient Weight Distributions by Layer', fontsize=16)
+        
+        axes_flat = [axes] if n_layers == 1 else axes.flatten()
+        
+        for i, layer in enumerate(valid_layers):
+            if i < len(axes_flat):
+                ax = axes_flat[i]
+                
+                gradients = model.weight_gradients[layer].flatten()
+                
+                if include_bias:
+                    bias_grads = model.bias_gradients[layer].flatten()
+                    all_params = np.concatenate([gradients, bias_grads])
+                else:
+                    all_params = gradients
+                
+                ax.hist(all_params, bins=30, alpha=0.7, color='blue', density=True, label='Gradients (incl. Bias)')
+                
+                if len(np.unique(all_params)) > 1:
+                    kde = stats.gaussian_kde(all_params)
+                    x_grid = np.linspace(min(all_params), max(all_params), 1000)
+                    ax.plot(x_grid, kde(x_grid), 'r-', linewidth=2, label='Density')
+                
+                mean, std = np.mean(all_params), np.std(all_params)
+                min_val, max_val = np.min(all_params), np.max(all_params)
+                skewness = stats.skew(all_params)
+                shape = "Normal" if abs(skewness) < 0.5 else ("Right-skewed" if skewness > 0.5 else "Left-skewed")
+                
+                stats_text = (f'Mean: {mean:.4f}\nStd Dev: {std:.4f}\n'
+                            f'Min: {min_val:.4f}\nMax: {max_val:.4f}\n'
+                            f'Skewness: {skewness:.4f}\nShape: {shape}')
+                
+                ax.text(0.05, 0.95, stats_text, transform=ax.transAxes, verticalalignment='top',
+                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+                ax.axvline(mean, color='green', linestyle='dashed', linewidth=1, label='Mean')
+                ax.set_title(f'Layer {layer} Gradient Distribution')
+                ax.set_xlabel('Gradient Value')
+                ax.set_ylabel('Density')
+                ax.legend(loc='upper right')
+        
+        for ax in axes_flat[len(valid_layers):]:
+            ax.set_visible(False)
         
         plt.tight_layout(rect=[0, 0, 1, 0.97])  
         plt.show()
