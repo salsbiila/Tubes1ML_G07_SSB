@@ -253,7 +253,7 @@ class FFNN:
 #     def visualize_loss_curve(self):
         return Visualizer.plot_loss_curves(self.history)
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 #     # Testing
 #     layer_sizes = [2, 20,1]
 #     activations = ["relu", "sigmoid"]
