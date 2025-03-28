@@ -249,6 +249,9 @@ class FFNN:
     
     def visualize_gradient_weight_distribution(self, layers=None, include_bias=True):
         return Visualizer.plot_gradient_weight_distribution(self, layers, include_bias)
+    
+    def visualize_loss_curve(self):
+        return Visualizer.plot_loss_curves(self.history)
 
 if __name__ == "__main__":
     # Testing
@@ -266,6 +269,7 @@ if __name__ == "__main__":
     model.visualize_model()
     model.visualize_weight_distribution()
     model.visualize_gradient_weight_distribution()
+    model.visualize_loss_curve()
     
     predictions = model.predict(X)
     print("\nPredictions:")
