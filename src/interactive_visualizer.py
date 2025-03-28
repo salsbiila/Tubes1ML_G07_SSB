@@ -5,6 +5,7 @@ from matplotlib.widgets import Button
 from scipy import stats
 import plotly.graph_objects as go
 from plotly.colors import sample_colorscale
+from plotly.subplots import make_subplots
 
 class InteractiveVisualizer:
     @staticmethod
@@ -510,6 +511,57 @@ class InteractiveVisualizer:
                 y=1,
                 xanchor="center",
                 x=0.5
+            )
+        )
+
+        fig.show()
+        return fig
+    
+    def plot_loss_curves(history):
+        fig = go.Figure()
+
+        epochs = list(range(1, len(history['train_loss']) + 1))
+        # plot training loss
+        fig.add_trace(go.Scatter(
+            x = epochs,
+            y = history['train_loss'],
+            mode = 'lines',
+            name = f"Training Loss",
+            line = dict(color='blue')
+        ))
+
+        # plot validation loss
+        if 'val_loss' in history and history['val_loss']:
+            fig.add_trace(go.Scatter(
+                x=epochs,
+                y=history['val_loss'],
+                mode='lines',
+                name=f"Validation Loss",
+                line=dict(color='red') 
+            ))
+
+        fig.update_layout(
+            title={
+                "text": "Training Loss",
+                "x": 0.5,
+                "xanchor": "center"
+            },
+            xaxis=dict(
+                title="Epoch",
+                tickfont=dict(size=14)  
+            ),
+            yaxis=dict(
+                title="Loss",
+                tickfont=dict(size=14)
+            ),
+            legend_title="Models",
+            template="plotly_white",
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
             )
         )
 
