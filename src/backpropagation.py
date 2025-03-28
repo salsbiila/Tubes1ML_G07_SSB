@@ -18,9 +18,9 @@ class BackPropagation:
         
         if model.loss_function == "mse":
             dL_dy_pred = LossDerivative.mse(y, y_pred)
-        elif model.loss_function == "binary_cross_entropy":
+        elif model.loss_function == "bce":
             dL_dy_pred = LossDerivative.binary_cross_entropy(y, y_pred)
-        elif model.loss_function == "categorical_cross_entropy":
+        elif model.loss_function == "cce":
             if model.activation_funcs[n_layers-1] == "softmax":
                 dL_dy_pred = LossDerivative.softmax_categorical_cross_entropy(y, y_pred)
             else:
@@ -32,7 +32,7 @@ class BackPropagation:
         delta = dL_dy_pred
         for layer in range(n_layers, 0, -1):
 
-            if layer == n_layers and model.activation_funcs[layer-1] == "softmax" and model.loss_function == "categorical_cross_entropy":
+            if layer == n_layers and model.activation_funcs[layer-1] == "softmax" and model.loss_function == "cce":
                 pass  # Gunakan delta yang sudah dihitung
             else:
                 activation_name = model.activation_funcs[layer-1]

@@ -1,11 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import networkx as nx
-from matplotlib.widgets import Button
 from scipy import stats
 import plotly.graph_objects as go
 from plotly.colors import sample_colorscale
-from plotly.subplots import make_subplots
 
 class InteractiveVisualizer:
     @staticmethod
@@ -565,5 +562,4 @@ class InteractiveVisualizer:
             )
         )
 
-        fig.show()
         return fig

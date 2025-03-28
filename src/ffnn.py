@@ -23,7 +23,7 @@ class FFNN:
             if activation_funcs not in valid_activation_funcs:
                 raise ValueError(f"activation_funcs must be one of: {valid_activation_funcs}")
             
-            if activation_funcs == "softmax" and loss_function != "categorical_cross_entropy":
+            if activation_funcs == "softmax" and loss_function != "cce":
                 raise ValueError("Softmax activation function should be used with categorical cross-entropy loss function.")
             
             if activation_funcs == "softmax" and layer_sizes[-1] == 1:
@@ -45,17 +45,17 @@ class FFNN:
                 if af == "softmax" and i != len(activation_funcs) - 1:
                     raise ValueError("Softmax activation function can only be applied to the output layer.")
             
-            if activation_funcs[-1] == "softmax" and loss_function != "categorical_cross_entropy":
+            if activation_funcs[-1] == "softmax" and loss_function != "cce":
                 raise ValueError("Softmax activation function should be used with categorical cross-entropy loss function.")
             
-            activation_funcs = [af.lower() for af in activation_funcs]
+            self.activation_funcs = [af.lower() for af in activation_funcs]
         else:
             raise TypeError("activation_funcs must be a string, list of strings, or None.")
         
         if loss_function.lower() not in valid_loss_funcs:
              raise ValueError(f"loss_function must be one of: {sorted(valid_loss_funcs)}")
         
-        if self.loss_function == "cce" and self.layer_sizes[-1] <= 2:
+        if loss_function.lower() == "cce" and self.layer_sizes[-1] <= 2:
             raise ValueError("Categorical Cross-Entropy is intended for multi-class classification (more than 2 output classes). For binary classification, use Binary Cross-Entropy (bce) instead.")
         self.loss_function = loss_function.lower()
 
