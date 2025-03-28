@@ -10,8 +10,8 @@ class BackPropagation:
             "biases": {}
         }
         
-        activations = model.o
-        pre_activations = model.sigma
+        activations = model.activations
+        pre_activations = model.pre_activations
         n_layers = len(model.layer_sizes) - 1
         
         y_pred = activations[n_layers]
@@ -21,7 +21,7 @@ class BackPropagation:
         elif model.loss_function == "binary_cross_entropy":
             dL_dy_pred = LossDerivative.binary_cross_entropy(y, y_pred)
         elif model.loss_function == "categorical_cross_entropy":
-            if model.activation[n_layers-1] == "softmax":
+            if model.activation_funcs[n_layers-1] == "softmax":
                 dL_dy_pred = LossDerivative.softmax_categorical_cross_entropy(y, y_pred)
             else:
                 dL_dy_pred = LossDerivative.categorical_cross_entropy(y, y_pred)
@@ -32,10 +32,10 @@ class BackPropagation:
         delta = dL_dy_pred
         for layer in range(n_layers, 0, -1):
 
-            if layer == n_layers and model.activation[layer-1] == "softmax" and model.loss_function == "categorical_cross_entropy":
+            if layer == n_layers and model.activation_funcs[layer-1] == "softmax" and model.loss_function == "categorical_cross_entropy":
                 pass  # Gunakan delta yang sudah dihitung
             else:
-                activation_name = model.activation[layer-1]
+                activation_name = model.activation_funcs[layer-1]
                 activation_derivative_method = getattr(ActivationDerivative, activation_name)
                 
                 df_dz = activation_derivative_method(pre_activations[layer])

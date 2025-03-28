@@ -7,18 +7,18 @@ from backpropagation import BackPropagation
 from interactive_visualizer import InteractiveVisualizer
 
 class FFNN:
-    def __init__(self, layer_sizes, activation=None, weight_init="xavier", loss_function="mse", seed=None):
+    def __init__(self, layer_sizes, activation_funcs=None, weight_init="xavier", loss_function="mse", seed=None):
         self.layer_sizes = layer_sizes
 
 
-        if isinstance(activation, str):
-            self.activation = [activation] * (len(layer_sizes) - 1)
-        elif activation is None:
-            self.activation = ["relu"] * (len(layer_sizes) - 1)
+        if isinstance(activation_funcs, str):
+            self.activation_funcs = [activation_funcs] * (len(layer_sizes) - 1)
+        elif activation_funcs is None:
+            self.activation_funcs = ["relu"] * (len(layer_sizes) - 1)
         else:
-            if len(activation) != len(layer_sizes) - 1:
-                raise ValueError(f"Activation list length ({len(activation)}) must match number of layers - 1 ({len(layer_sizes) - 1})")
-            self.activation = activation
+            if len(activation_funcs) != len(layer_sizes) - 1:
+                raise ValueError(f"Activation function's list length ({len(activation_funcs)}) must match number of layers - 1 ({len(layer_sizes) - 1})")
+            self.activation_funcs = activation_funcs
             
         self.loss_function = loss_function
         self.weight_init = weight_init
@@ -29,8 +29,8 @@ class FFNN:
         self.biases = {}
         self.weight_gradients = {}
         self.bias_gradients = {}
-        self.sigma = {}  
-        self.o = {} 
+        self.pre_activations = {}  
+        self.activations = {} 
         
 
         self.weights, self.biases = self.setup_weights()
@@ -101,27 +101,27 @@ class FFNN:
             raise ValueError(f"Loss function '{self.loss_function}' not found.")
         
     def forward(self, x):
-        o = x
-        self.o[0] =  o
+        activation = x
+        self.activations[0] =  activation
 
         for i in range(1, len(self.layer_sizes)):
             W = self.weights[i]
             b = self.biases[i]
 
-            sigma = np.dot(o, W) + b
+            pre_activation = np.dot(activation, W) + b
             
             # terus diaktivasi
-            activation_name = self.activation[i-1]
+            activation_name = self.activation_funcs[i-1]
             if hasattr(ActivationFunction, activation_name):
                 activation_func = getattr(ActivationFunction, activation_name)
-                o = activation_func(sigma)
+                activation = activation_func(pre_activation)
             else:
                 raise ValueError(f"Activation function '{activation_name}' not found.")
 
-            self.sigma[i] = sigma
-            self.o[i] = o
+            self.pre_activations[i] = pre_activation
+            self.activations[i] = activation
             
-        return o
+        return activation
     
     def backward(self, X, y, learning_rate):
 
@@ -191,7 +191,7 @@ class FFNN:
         for i in range(1, len(self.layer_sizes)):
             print(f"Layer {i}:")
             print(f"  - Neurons: {self.layer_sizes[i]}")
-            print(f"  - Activation: {self.activation[i-1]}")
+            print(f"  - Activation: {self.activation_funcs[i-1]}")
             print(f"  - Weights shape: {self.weights[i].shape}")
             print(f"  - Bias shape: {self.biases[i].shape}")
             
@@ -253,27 +253,27 @@ class FFNN:
     def visualize_loss_curve(self):
         return InteractiveVisualizer.plot_loss_curves(self.history)
 
-# if __name__ == "__main__":
-#     # Testing
-#     layer_sizes = [2, 20,1]
-#     activations = ["relu", "sigmoid"]
+if __name__ == "__main__":
+    # Testing
+    layer_sizes = [2, 20,1]
+    activation_funcs = ["relu", "sigmoid"]
     
-#     # Sample data
-#     X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-#     y = np.array([[0], [1], [1], [0]])
+    # Sample data
+    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    y = np.array([[0], [1], [1], [0]])
     
-#     model = FFNN(layer_sizes, activation=activations, loss_function="mse", weight_init="he", seed=42)
-#     model.print_model()
-#     history = model.train(X, y, epochs=10000, learning_rate=0.1, batch_size=4, verbose=1)
-#     model.print_model()
-#     model.visualize_model()
-#     model.visualize_weight_distribution()
-#     model.visualize_gradient_weight_distribution()
+    model = FFNN(layer_sizes, activation_funcs=activation_funcs, loss_function="mse", weight_init="he", seed=42)
+    model.print_model()
+    history = model.train(X, y, epochs=10000, learning_rate=0.1, batch_size=4, verbose=1)
+    # model.print_model()
+    # model.visualize_model()
+    # model.visualize_weight_distribution()
+    # model.visualize_gradient_weight_distribution()
     
-#     predictions = model.predict(X)
-#     print("\nPredictions:")
-#     for i, pred in enumerate(predictions):
-#         print(f"Input: {X[i]} -> Predicted: {pred[0]:.4f}, Actual: {y[i][0]}")
+    predictions = model.predict(X)
+    print("\nPredictions:")
+    for i, pred in enumerate(predictions):
+        print(f"Input: {X[i]} -> Predicted: {pred[0]:.4f}, Actual: {y[i][0]}")
 
     # model.save("model/model.json")
     # print("======================================== loaded model ========================================")
