@@ -8,8 +8,10 @@ from interactive_visualizer import InteractiveVisualizer
 
 class FFNN:
     def __init__(self, layer_sizes, activation=None, weight_init="xavier", loss_function="mse", seed=None):
+        
+        if len(layer_sizes) < 3:
+            raise ValueError("The model must have at least 3 layers (input, at least one hidden layer, and output).")
         self.layer_sizes = layer_sizes
-
 
         if isinstance(activation, str):
             self.activation = [activation] * (len(layer_sizes) - 1)
