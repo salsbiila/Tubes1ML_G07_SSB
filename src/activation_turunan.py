@@ -31,23 +31,23 @@ class ActivationDerivative:
         return jacobian
     
     @staticmethod
-    def softplus_derivative(x):
+    def softplus(x):
         return 1 / (1 + np.exp(-x))
     
-    def elu_derivative(x, alpha=1.0):
+    def elu(x, alpha=1.0):
         return np.where(x > 0, 1, alpha * np.exp(x))
     
     @staticmethod
-    def selu_derivative(x):
+    def selu(x):
         alpha = 1.67326
         scale = 1.0507
         return np.where(x > 0, scale, scale * alpha * np.exp(x))
     
     @staticmethod
-    def prelu_derivative(x, alpha=0.01):
+    def prelu(x, alpha=0.01):
         return np.where(x > 0, 1, alpha)
     
     @staticmethod
-    def swish_derivative(x):
+    def swish(x):
         sig = 1 / (1 + np.exp(-x))
         return sig + x * sig * (1 - sig)

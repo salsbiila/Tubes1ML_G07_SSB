@@ -8,21 +8,63 @@ from interactive_visualizer import InteractiveVisualizer
 
 class FFNN:
     def __init__(self, layer_sizes, activation_funcs=None, weight_init="xavier", loss_function="mse", seed=None):
+        if not all(isinstance(n, int) and n > 0 for n in layer_sizes):
+            raise ValueError("All elements in layer_sizes must be positive integers.")
+        
         if len(layer_sizes) < 3:
             raise ValueError("The model must have at least 3 layers (input, at least one hidden layer, and output).")
         self.layer_sizes = layer_sizes
 
+        valid_activation_funcs = ["linear", "relu", "sigmoid", "tanh", "softmax", "softplus", "elu", "selu", "prelu", "swish"]
+        valid_loss_funcs = ["mse", "bce", "cce"]
+        valid_weight_inits = ["zero", "uniform", "normal", "xavier", "he"]
+
         if isinstance(activation_funcs, str):
-            self.activation_funcs = [activation_funcs] * (len(layer_sizes) - 1)
+            if activation_funcs not in valid_activation_funcs:
+                raise ValueError(f"activation_funcs must be one of: {valid_activation_funcs}")
+            
+            if activation_funcs == "softmax" and loss_function != "categorical_cross_entropy":
+                raise ValueError("Softmax activation function should be used with categorical cross-entropy loss function.")
+            
+            if activation_funcs == "softmax" and layer_sizes[-1] == 1:
+                raise ValueError("Cannot use softmax activation function with single output neuron.")
+            
+            self.activation_funcs = [activation_funcs.lower()] * (len(layer_sizes) - 1)
+
         elif activation_funcs is None:
             self.activation_funcs = ["relu"] * (len(layer_sizes) - 1)
-        else:
+
+        elif isinstance(activation_funcs, list):
             if len(activation_funcs) != len(layer_sizes) - 1:
-                raise ValueError(f"Activation function's list length ({len(activation_funcs)}) must match number of layers - 1 ({len(layer_sizes) - 1})")
-            self.activation_funcs = activation_funcs
+                raise ValueError(f"activation_funcs must have exactly {len(layer_sizes) - 1} elements, got {len(activation_funcs)}.")
             
-        self.loss_function = loss_function
-        self.weight_init = weight_init
+            for i, af in enumerate(activation_funcs):
+                if af not in valid_activation_funcs:
+                    raise ValueError(f"Invalid activation function '{af}'. Must be one of: {sorted(valid_activation_funcs)}")
+                
+                if af == "softmax" and i != len(activation_funcs) - 1:
+                    raise ValueError("Softmax activation function can only be applied to the output layer.")
+            
+            if activation_funcs[-1] == "softmax" and loss_function != "categorical_cross_entropy":
+                raise ValueError("Softmax activation function should be used with categorical cross-entropy loss function.")
+            
+            activation_funcs = [af.lower() for af in activation_funcs]
+        else:
+            raise TypeError("activation_funcs must be a string, list of strings, or None.")
+        
+        if loss_function.lower() not in valid_loss_funcs:
+             raise ValueError(f"loss_function must be one of: {sorted(valid_loss_funcs)}")
+        
+        if self.loss_function == "cce" and self.layer_sizes[-1] <= 2:
+            raise ValueError("Categorical Cross-Entropy is intended for multi-class classification (more than 2 output classes). For binary classification, use Binary Cross-Entropy (bce) instead.")
+        self.loss_function = loss_function.lower()
+
+        if weight_init.lower() not in valid_weight_inits:
+            raise ValueError(f"weight_init must be one of: {sorted(valid_weight_inits)}")
+        self.weight_init = weight_init.lower()
+
+        if seed is not None and not isinstance(seed, int):
+            raise ValueError("seed must be an integer or None.")
         self.seed = seed
 
 
@@ -94,9 +136,9 @@ class FFNN:
     def compute_loss(self, y_true, y_pred):
         if self.loss_function == "mse":
             return LossFunction.mse(y_true, y_pred)
-        elif self.loss_function == "binary_cross_entropy":
+        elif self.loss_function == "bce":
             return LossFunction.binary_cross_entropy(y_true, y_pred)
-        elif self.loss_function == "categorical_cross_entropy":
+        elif self.loss_function == "cce":
             return LossFunction.categorical_cross_entropy(y_true, y_pred)
         else:
             raise ValueError(f"Loss function '{self.loss_function}' not found.")
@@ -171,12 +213,12 @@ class FFNN:
                 val_loss = self.compute_loss(y_val, val_pred)
                 self.history["val_loss"].append(val_loss)
             
-            # # Print progress
-            # if verbose == 1:
-            #     if X_val is not None and y_val is not None:
-            #         print(f"Epoch {epoch+1}/{epochs} - loss: {avg_train_loss:.4f} - val_loss: {val_loss:.4f}")
-            #     else:
-            #         print(f"Epoch {epoch+1}/{epochs} - loss: {avg_train_loss:.4f}")
+            # Print progress
+            if verbose == 1:
+                if X_val is not None and y_val is not None:
+                    print(f"Epoch {epoch+1}/{epochs} - loss: {avg_train_loss:.4f} - val_loss: {val_loss:.4f}")
+                else:
+                    print(f"Epoch {epoch+1}/{epochs} - loss: {avg_train_loss:.4f}")
         
         return self.history
     
@@ -253,34 +295,3 @@ class FFNN:
     
     def visualize_loss_curve(self):
         return InteractiveVisualizer.plot_loss_curves(self.history)
-
-if __name__ == "__main__":
-    # Testing
-    layer_sizes = [2, 20,1]
-    activation_funcs = ["relu", "sigmoid"]
-    
-    # Sample data
-    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    y = np.array([[0], [1], [1], [0]])
-    
-    model = FFNN(layer_sizes, activation_funcs=activation_funcs, loss_function="mse", weight_init="he", seed=42)
-    model.print_model()
-    history = model.train(X, y, epochs=10000, learning_rate=0.1, batch_size=4, verbose=1)
-    # model.print_model()
-    # model.visualize_model()
-    # model.visualize_weight_distribution()
-    # model.visualize_gradient_weight_distribution()
-    
-    predictions = model.predict(X)
-    print("\nPredictions:")
-    for i, pred in enumerate(predictions):
-        print(f"Input: {X[i]} -> Predicted: {pred[0]:.4f}, Actual: {y[i][0]}")
-
-    # model.save("model/model.json")
-    # print("======================================== loaded model ========================================")
-    # loaded_model = FFNN.load("model/model.json")
-    # loaded_model.print_model()
-    # new_predictions = loaded_model.predict(X)
-    # print("\nPredictions:")
-    # for i, pred in enumerate(new_predictions):
-    #     print(f"Input: {X[i]} -> Predicted: {pred[0]:.4f}, Actual: {y[i][0]}")
