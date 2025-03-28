@@ -4,7 +4,7 @@ from weight_initializer import WeightInitializer
 from activation_function import ActivationFunction
 from loss_function import LossFunction
 from backpropagation import BackPropagation
-from visualizer import Visualizer
+from interactive_visualizer import InteractiveVisualizer
 
 class FFNN:
     def __init__(self, layer_sizes, activation=None, weight_init="xavier", loss_function="mse", seed=None):
@@ -242,35 +242,35 @@ class FFNN:
         return model
     
     def visualize_model(self, show_gradients=True):
-        return Visualizer.visualize_network(self, show_gradients=show_gradients)
+        return InteractiveVisualizer.visualize_network(self, show_gradients=show_gradients)
     
     def visualize_weight_distribution(self, layers=None, include_bias=True):
-        return Visualizer.plot_weight_distribution(self, layers, include_bias)
+        return InteractiveVisualizer.plot_weight_distribution(self, layers, include_bias)
     
     def visualize_gradient_weight_distribution(self, layers=None, include_bias=True):
-        return Visualizer.plot_gradient_weight_distribution(self, layers, include_bias)
+        return InteractiveVisualizer.plot_gradient_weight_distribution(self, layers, include_bias)
 
-if __name__ == "__main__":
-    # Testing
-    layer_sizes = [2, 20,1]
-    activations = ["relu", "sigmoid"]
+# if __name__ == "__main__":
+#     # Testing
+#     layer_sizes = [2, 20,1]
+#     activations = ["relu", "sigmoid"]
     
-    # Sample data
-    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    y = np.array([[0], [1], [1], [0]])
+#     # Sample data
+#     X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+#     y = np.array([[0], [1], [1], [0]])
     
-    model = FFNN(layer_sizes, activation=activations, loss_function="mse", weight_init="he", seed=42)
-    model.print_model()
-    history = model.train(X, y, epochs=10000, learning_rate=0.1, batch_size=4, verbose=1)
-    model.print_model()
-    model.visualize_model()
-    model.visualize_weight_distribution()
-    model.visualize_gradient_weight_distribution()
+#     model = FFNN(layer_sizes, activation=activations, loss_function="mse", weight_init="he", seed=42)
+#     model.print_model()
+#     history = model.train(X, y, epochs=10000, learning_rate=0.1, batch_size=4, verbose=1)
+#     model.print_model()
+#     model.visualize_model()
+#     model.visualize_weight_distribution()
+#     model.visualize_gradient_weight_distribution()
     
-    predictions = model.predict(X)
-    print("\nPredictions:")
-    for i, pred in enumerate(predictions):
-        print(f"Input: {X[i]} -> Predicted: {pred[0]:.4f}, Actual: {y[i][0]}")
+#     predictions = model.predict(X)
+#     print("\nPredictions:")
+#     for i, pred in enumerate(predictions):
+#         print(f"Input: {X[i]} -> Predicted: {pred[0]:.4f}, Actual: {y[i][0]}")
 
     # model.save("model/model.json")
     # print("======================================== loaded model ========================================")
