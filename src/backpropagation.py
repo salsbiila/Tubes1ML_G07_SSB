@@ -10,11 +10,11 @@ class BackPropagation:
             "biases": {}
         }
         
-        o = model.o
-        sigma = model.sigma
+        activations = model.o
+        pre_activations = model.sigma
         n_layers = len(model.layer_sizes) - 1
         
-        y_pred = o[n_layers]
+        y_pred = activations[n_layers]
         
         if model.loss_function == "mse":
             dL_dy_pred = LossDerivative.mse(y, y_pred)
@@ -38,11 +38,11 @@ class BackPropagation:
                 activation_name = model.activation[layer-1]
                 activation_derivative_method = getattr(ActivationDerivative, activation_name)
                 
-                df_dz = activation_derivative_method(sigma[layer])
+                df_dz = activation_derivative_method(pre_activations[layer])
                 delta = delta * df_dz
             
             # dL/dW = dL/dy_pred * df/dz * dz/dW = delta * aktivasi layer sebelumnya
-            gradients["weights"][layer] = np.dot(o[layer-1].T, delta)
+            gradients["weights"][layer] = activations[layer-1].T @ delta
             
             # dL/db = dL/dy_pred * df/dz * dz/db = delta
             gradients["biases"][layer] = np.sum(delta, axis=0, keepdims=True)
