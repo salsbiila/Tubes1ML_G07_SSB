@@ -7,7 +7,7 @@ from backpropagation import BackPropagation
 from interactive_visualizer import InteractiveVisualizer
 
 class FFNN:
-    def __init__(self, layer_sizes, activation_funcs=None, weight_init="xavier", loss_function="mse", reg_type=None, lambda_param=0.01, seed=None):
+    def __init__(self, layer_sizes, activation_funcs=None, weight_init="xavier", loss_function="mse", mean=0, variance=0.1, lower_bound=-0.5, upper_bound=0.5, type="uniform", reg_type=None, lambda_param=0.01, seed=None):
         if not all(isinstance(n, int) and n > 0 for n in layer_sizes):
             raise ValueError("Semua elements di layer_sizes harus positive integers.")
         
@@ -76,6 +76,12 @@ class FFNN:
             raise ValueError("lambda_param harus non-negative number")
         self.lambda_param = lambda_param
 
+        self.mean = mean
+        self.variance = variance
+        self.lower_bound= lower_bound
+        self.upper_bound = upper_bound
+        self.type = type
+
         self.weights = {}
         self.biases = {}
         self.weight_gradients = {}
@@ -114,21 +120,21 @@ class FFNN:
             elif self.weight_init == "uniform":
                 W, b = WeightInitializer.random_uniform_initializer(
                     input_size, output_size, 
-                    params.get("lower_bound", -0.5), 
-                    params.get("upper_bound", 0.5), 
+                    self.lower_bound, 
+                    self.upper_bound, 
                     seed=self.seed
                 )
             elif self.weight_init == "normal":
                 W, b = WeightInitializer.random_normal_initializer(
                     input_size, output_size, 
-                    params.get("mean", 0), 
-                    params.get("variance", 0.1), 
+                    self.mean, 
+                    self.variance, 
                     seed=self.seed
                 )
             elif self.weight_init == "xavier":
-                W, b = WeightInitializer.xavier_initializer(input_size, output_size, seed=self.seed)
+                W, b = WeightInitializer.xavier_initializer(input_size, output_size, self.type, seed=self.seed)
             elif self.weight_init == "he":
-                W, b = WeightInitializer.he_initializer(input_size, output_size, seed=self.seed)
+                W, b = WeightInitializer.he_initializer(input_size, output_size, self.type, seed=self.seed)
             else:
                 raise ValueError(f"Weight initialization method '{self.weight_init}' not recognized.")
 
@@ -304,3 +310,7 @@ class FFNN:
     
     def visualize_loss_curve(self):
         return InteractiveVisualizer.plot_loss_curves(self.history)
+    
+    @staticmethod
+    def visualize_weight_distribution_sklearn(model, layers=None):
+        return InteractiveVisualizer.plot_weight_distribution_sklearn(model, layers)

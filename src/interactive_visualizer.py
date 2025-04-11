@@ -560,3 +560,132 @@ class InteractiveVisualizer:
         )
 
         return fig
+    
+    def plot_weight_distribution_sklearn(model, include_bias=True):
+        traces = []
+        buttons = []
+        annotations = []
+
+        n_layers = len(model.coefs_)
+        for i in range(n_layers):
+            weights = model.coefs_[i].flatten()
+
+            if include_bias:
+                biases = model.intercepts_[i].flatten()
+                data_for_stats = np.concatenate([weights, biases])
+                hist_label = f"Layer {i+1} Weights (incl. Bias)"
+            else:
+                data_for_stats = weights
+                hist_label = f"Layer {i+1} Weights only"
+
+            # Histogram
+            hist = go.Histogram(
+                x=data_for_stats,
+                nbinsx=30,
+                name=hist_label,
+                histnorm='probability density',
+                opacity=0.7,
+                marker=dict(color='blue'),
+                visible=(i == 0)
+            )
+
+            # KDE Line
+            kde = stats.gaussian_kde(data_for_stats)
+            x_grid = np.linspace(min(data_for_stats), max(data_for_stats), 1000)
+            y_kde = kde(x_grid)
+
+            kde_line = go.Scatter(
+                x=x_grid,
+                y=y_kde,
+                mode='lines',
+                name='Density',
+                line=dict(color='red'),
+                visible=(i == 0)
+            )
+
+            # Mean Line
+            mean = np.mean(data_for_stats)
+            mean_line = go.Scatter(
+                x=[mean, mean],
+                y=[0, max(y_kde) * 1.05],
+                mode='lines',
+                name='Mean',
+                line=dict(color='green', dash='dash'),
+                visible=(i == 0)
+            )
+
+            # Stats
+            std = np.std(data_for_stats)
+            min_val = np.min(data_for_stats)
+            max_val = np.max(data_for_stats)
+            skewness = stats.skew(data_for_stats)
+
+            if abs(skewness) < 0.5:
+                shape = "Normal"
+            elif skewness > 0.5:
+                shape = "Right-skewed"
+            else:
+                shape = "Left-skewed"
+
+            stats_text = (f'Mean: {mean:.4f}<br>Std Dev: {std:.4f}<br>'
+                        f'Min: {min_val:.4f}<br>Max: {max_val:.4f}<br>'
+                        f'Skewness: {skewness:.4f}<br>Shape: {shape}')
+
+            annotation = dict(
+                text=stats_text,
+                x=0.05,
+                y=0.95,
+                xref='paper',
+                yref='paper',
+                showarrow=False,
+                align='left',
+                bgcolor='white',
+                bordercolor='black',
+                borderwidth=1
+            )
+
+            annotations.append(annotation)
+            traces.extend([hist, kde_line, mean_line])
+
+            # Button for layer toggle
+            visibility_mask = [j // 3 == i for j in range(3 * n_layers)]
+            buttons.append(dict(
+                label=f"Layer {i+1}",
+                method="update",
+                args=[
+                    {"visible": visibility_mask},
+                    {"annotations": [annotation]}
+                ]
+            ))
+
+        # Create figure
+        fig = go.Figure(data=traces)
+
+        fig.update_layout(
+            title={
+                "text": "Weight Distributions by Layer",
+                "x": 0.5,
+                "xanchor": "center"
+            },
+            xaxis_title="Weight Value",
+            yaxis_title="Density",
+            updatemenus=[dict(
+                active=0,
+                buttons=buttons,
+                direction="down",
+                x=0.0,
+                y=1.15,
+                showactive=True
+            )],
+            annotations=[annotations[0]],
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1,
+                xanchor="center",
+                x=0.5
+            )
+        )
+
+        fig.show()
+        return fig
