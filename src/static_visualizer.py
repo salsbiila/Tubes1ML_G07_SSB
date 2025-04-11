@@ -414,7 +414,6 @@ class StaticVisualizer:
                 ax.set_ylabel('Density')
                 ax.legend(loc='upper right')
         
-        # hide unused subplots
         if n_layers > 1:
             for j in range(i+1, len(axes_flat)):
                 axes_flat[j].set_visible(False)
