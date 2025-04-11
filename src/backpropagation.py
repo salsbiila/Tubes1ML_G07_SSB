@@ -44,10 +44,17 @@ class BackPropagation:
             # dL/dW = dL/dy_pred * df/dz * dz/dW = delta * aktivasi layer sebelumnya
             gradients["weights"][layer] = activations[layer-1].T @ delta
             
+            if model.reg_type is not None and model.lambda_param > 0:
+                if model.reg_type == "l1":
+                    reg_grad = model.lambda_param * LossDerivative.l1_regularization(model.weights[layer])
+                    gradients["weights"][layer] += reg_grad
+                elif model.reg_type == "l2":
+                    reg_grad = model.lambda_param * LossDerivative.l2_regularization(model.weights[layer])
+                    gradients["weights"][layer] += reg_grad
+            
             # dL/db = dL/dy_pred * df/dz * dz/db = delta
             gradients["biases"][layer] = np.sum(delta, axis=0, keepdims=True)
             
-
             if layer > 1:
                 # delta untuk layer sebelumnya = delta sekarang * weights sekarang
                 delta = delta @ model.weights[layer].T

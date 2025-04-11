@@ -7,7 +7,7 @@ from backpropagation import BackPropagation
 from interactive_visualizer import InteractiveVisualizer
 
 class FFNN:
-    def __init__(self, layer_sizes, activation_funcs=None, weight_init="xavier", loss_function="mse", seed=None):
+    def __init__(self, layer_sizes, activation_funcs=None, weight_init="xavier", loss_function="mse", reg_type=None, lambda_param=0.01, seed=None):
         if not all(isinstance(n, int) and n > 0 for n in layer_sizes):
             raise ValueError("All elements in layer_sizes must be positive integers.")
         
@@ -18,6 +18,7 @@ class FFNN:
         valid_activation_funcs = ["linear", "relu", "sigmoid", "tanh", "softmax", "softplus", "elu", "selu", "prelu", "swish"]
         valid_loss_funcs = ["mse", "bce", "cce"]
         valid_weight_inits = ["zero", "uniform", "normal", "xavier", "he"]
+        valid_reg_types = [None, "l1", "l2"]
 
         if isinstance(activation_funcs, str):
             if activation_funcs not in valid_activation_funcs:
@@ -66,7 +67,14 @@ class FFNN:
         if seed is not None and not isinstance(seed, int):
             raise ValueError("seed must be an integer or None.")
         self.seed = seed
-
+        
+        if reg_type not in valid_reg_types:
+            raise ValueError(f"reg_type must be one of: {valid_reg_types}")
+        self.reg_type = reg_type
+        
+        if not isinstance(lambda_param, (int, float)) or lambda_param < 0:
+            raise ValueError("lambda_param must be a non-negative number")
+        self.lambda_param = lambda_param
 
         self.weights = {}
         self.biases = {}
@@ -135,13 +143,20 @@ class FFNN:
     
     def compute_loss(self, y_true, y_pred):
         if self.loss_function == "mse":
-            return LossFunction.mse(y_true, y_pred)
+            base_loss = LossFunction.mse(y_true, y_pred)
         elif self.loss_function == "bce":
-            return LossFunction.binary_cross_entropy(y_true, y_pred)
+            base_loss = LossFunction.binary_cross_entropy(y_true, y_pred)
         elif self.loss_function == "cce":
-            return LossFunction.categorical_cross_entropy(y_true, y_pred)
+            base_loss = LossFunction.categorical_cross_entropy(y_true, y_pred)
         else:
             raise ValueError(f"Loss function '{self.loss_function}' not found.")
+        
+        # Tambahkan regularisasi jika diperlukan
+        regularized_loss = LossFunction.compute_regularized_loss(
+            base_loss, self.weights, self.reg_type, self.lambda_param
+        )
+        
+        return regularized_loss
         
     def forward(self, x):
         activation = x
@@ -167,11 +182,9 @@ class FFNN:
         return activation
     
     def backward(self, X, y, learning_rate):
-
         y_pred = self.forward(X)
         loss = self.compute_loss(y, y_pred)
         
- 
         gradients = BackPropagation.backward(self, X, y, learning_rate)
     
         for i in gradients["weights"]:
@@ -180,7 +193,6 @@ class FFNN:
         return loss
     
     def train(self, X_train, y_train, X_val=None, y_val=None, batch_size=32, learning_rate=0.01, epochs=100, verbose=1):
-
         n_samples = X_train.shape[0]
         self.history = {
             "train_loss": [],
@@ -226,9 +238,6 @@ class FFNN:
         return self.forward(X)
     
     def print_model(self):
-        """
-        Print model structure with weights and biases
-        """
         print("Model Structure:")
         print(f"Input Layer: {self.layer_sizes[0]} neurons")
         for i in range(1, len(self.layer_sizes)):
@@ -247,15 +256,20 @@ class FFNN:
                 print(f"  - Sample biases: {self.biases[i].flatten()[:5]} ...")
             else:
                 print(f"  - Biases: {self.biases[i]}")
+        
+        if self.reg_type is not None:
+            print(f"Regularization: {self.reg_type.upper()}, lambda={self.lambda_param}")
     
     def save(self, filepath):
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
         model_data = {
             "layer_sizes": self.layer_sizes,
-            "activation": self.activation,
+            "activation_funcs": self.activation_funcs,
             "weight_init": self.weight_init,
             "loss_function": self.loss_function,
+            "reg_type": self.reg_type,
+            "lambda_param": self.lambda_param,
             "seed": self.seed,
             "weights": {str(k): self.weights[k].tolist() for k in self.weights},
             "biases": {str(k): self.biases[k].tolist() for k in self.biases}
@@ -272,9 +286,11 @@ class FFNN:
 
         model = cls(
             layer_sizes=model_data["layer_sizes"],
-            activation=model_data["activation"],
+            activation_funcs=model_data.get("activation_funcs", model_data.get("activation")),
             weight_init=model_data["weight_init"],
             loss_function=model_data["loss_function"],
+            reg_type=model_data.get("reg_type", None),
+            lambda_param=model_data.get("lambda_param", 0.0),
             seed=model_data["seed"]
         )
 

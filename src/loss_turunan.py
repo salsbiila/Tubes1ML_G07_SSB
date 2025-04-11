@@ -22,3 +22,11 @@ class LossDerivative:
     def softmax_categorical_cross_entropy(y_true, y_pred):
         n = y_true.shape[0]
         return (y_pred - y_true) / n
+    
+    @staticmethod
+    def l1_regularization(w):
+        return np.sign(w)
+    
+    @staticmethod
+    def l2_regularization(w):
+        return w

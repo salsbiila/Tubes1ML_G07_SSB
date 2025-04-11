@@ -30,3 +30,51 @@ class LossFunction:
         y_pred = np.clip(y_pred, epsilon, 1.0)
         loss = -np.mean(np.sum(y_true * np.log(y_pred), axis=1))
         return loss
+    
+    @staticmethod
+    def compute_l1_regularization(weights, lambda_param):
+        """
+        Menghitung regularisasi L1 (Lasso)
+        L1 = λ * sum(|w|)
+        """
+        l1_reg = 0
+        for w in weights.values():
+            l1_reg += np.sum(np.abs(w))
+        return lambda_param * l1_reg
+    
+    @staticmethod
+    def compute_l2_regularization(weights, lambda_param):
+        """
+        Menghitung regularisasi L2 (Ridge)
+        L2 = λ * sum(w²)
+        """
+        l2_reg = 0
+        for w in weights.values():
+            l2_reg += np.sum(w**2)
+        return 0.5 * lambda_param * l2_reg
+    
+    @staticmethod
+    def compute_regularized_loss(loss, weights, reg_type, lambda_param):
+        """
+        Menambahkan regularisasi ke loss function
+        
+        Parameters:
+        - loss: nilai loss dasar
+        - weights: dictionary berisi bobot model
+        - reg_type: tipe regularisasi ('l1', 'l2', atau None)
+        - lambda_param: parameter regularisasi (λ)
+        
+        Returns:
+        - regularized_loss: loss + regularisasi
+        """
+        if reg_type is None or lambda_param == 0:
+            return loss
+        
+        if reg_type.lower() == 'l1':
+            reg_term = LossFunction.compute_l1_regularization(weights, lambda_param)
+        elif reg_type.lower() == 'l2':
+            reg_term = LossFunction.compute_l2_regularization(weights, lambda_param)
+        else:
+            raise ValueError(f"Regularization type '{reg_type}' not recognized. Use 'l1', 'l2', or None.")
+        
+        return loss + reg_term
