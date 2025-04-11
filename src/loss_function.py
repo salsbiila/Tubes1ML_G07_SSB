@@ -22,7 +22,6 @@ class LossFunction:
     
     @staticmethod
     def categorical_cross_entropy(y_true, y_pred, epsilon=1e-15):
-        # Ensure shapes match
         if y_true.shape != y_pred.shape:
             raise ValueError(f"Shapes not match. y_true= {y_true.shape}. y_pred= {y_pred.shape}")
         
