@@ -33,10 +33,6 @@ class LossFunction:
     
     @staticmethod
     def compute_l1_regularization(weights, lambda_param):
-        """
-        Menghitung regularisasi L1 (Lasso)
-        L1 = λ * sum(|w|)
-        """
         l1_reg = 0
         for w in weights.values():
             l1_reg += np.sum(np.abs(w))
@@ -44,10 +40,6 @@ class LossFunction:
     
     @staticmethod
     def compute_l2_regularization(weights, lambda_param):
-        """
-        Menghitung regularisasi L2 (Ridge)
-        L2 = λ * sum(w²)
-        """
         l2_reg = 0
         for w in weights.values():
             l2_reg += np.sum(w**2)
@@ -55,18 +47,6 @@ class LossFunction:
     
     @staticmethod
     def compute_regularized_loss(loss, weights, reg_type, lambda_param):
-        """
-        Menambahkan regularisasi ke loss function
-        
-        Parameters:
-        - loss: nilai loss dasar
-        - weights: dictionary berisi bobot model
-        - reg_type: tipe regularisasi ('l1', 'l2', atau None)
-        - lambda_param: parameter regularisasi (λ)
-        
-        Returns:
-        - regularized_loss: loss + regularisasi
-        """
         if reg_type is None or lambda_param == 0:
             return loss
         

@@ -9,23 +9,23 @@ from interactive_visualizer import InteractiveVisualizer
 class FFNN:
     def __init__(self, layer_sizes, activation_funcs=None, weight_init="xavier", loss_function="mse", reg_type=None, lambda_param=0.01, seed=None):
         if not all(isinstance(n, int) and n > 0 for n in layer_sizes):
-            raise ValueError("All elements in layer_sizes must be positive integers.")
+            raise ValueError("Semua elements di layer_sizes harus positive integers.")
         
         if len(layer_sizes) < 3:
-            raise ValueError("The model must have at least 3 layers (input, at least one hidden layer, and output).")
+            raise ValueError("The model setidaknya punya 3 layers (input, satu hidden layer, dan output).")
         self.layer_sizes = layer_sizes
 
         valid_activation_funcs = ["linear", "relu", "sigmoid", "tanh", "softmax", "softplus", "elu", "selu", "prelu", "swish"]
         valid_loss_funcs = ["mse", "bce", "cce"]
         valid_weight_inits = ["zero", "uniform", "normal", "xavier", "he"]
-        valid_reg_types = [None, "l1", "l2"]
+        valid_reg = [None, "l1", "l2"]
 
         if isinstance(activation_funcs, str):
             if activation_funcs not in valid_activation_funcs:
-                raise ValueError(f"activation_funcs must be one of: {valid_activation_funcs}")
+                raise ValueError(f"activation_funcs harus salah satu dari: {valid_activation_funcs}")
             
             if activation_funcs == "softmax" and loss_function != "cce":
-                raise ValueError("Softmax activation function should be used with categorical cross-entropy loss function.")
+                raise ValueError("Softmax hanya bisa dengan cross-entropy loss function.")
             
             if activation_funcs == "softmax" and layer_sizes[-1] == 1:
                 raise ValueError("Cannot use softmax activation function with single output neuron.")
@@ -37,43 +37,43 @@ class FFNN:
 
         elif isinstance(activation_funcs, list):
             if len(activation_funcs) != len(layer_sizes) - 1:
-                raise ValueError(f"activation_funcs must have exactly {len(layer_sizes) - 1} elements, got {len(activation_funcs)}.")
+                raise ValueError(f"activation_funcs must have exactly {len(layer_sizes) - 1} elements, activation funcs : {len(activation_funcs)}.")
             
             for i, af in enumerate(activation_funcs):
                 if af not in valid_activation_funcs:
                     raise ValueError(f"Invalid activation function '{af}'. Must be one of: {sorted(valid_activation_funcs)}")
                 
                 if af == "softmax" and i != len(activation_funcs) - 1:
-                    raise ValueError("Softmax activation function can only be applied to the output layer.")
+                    raise ValueError("Softmax activation function hanya bisa digunakan di output layer.")
             
             if activation_funcs[-1] == "softmax" and loss_function != "cce":
-                raise ValueError("Softmax activation function should be used with categorical cross-entropy loss function.")
+                raise ValueError("Softmax hanya bisa dengan cross-entropy loss function.")
             
             self.activation_funcs = [af.lower() for af in activation_funcs]
         else:
-            raise TypeError("activation_funcs must be a string, list of strings, or None.")
+            raise TypeError("activation_funcs harus string, list of strings, atau None.")
         
         if loss_function.lower() not in valid_loss_funcs:
-             raise ValueError(f"loss_function must be one of: {sorted(valid_loss_funcs)}")
+             raise ValueError(f"loss_function harus salah satu dari: {sorted(valid_loss_funcs)}")
         
         if loss_function.lower() == "cce" and self.layer_sizes[-1] <= 2:
             raise ValueError("Categorical Cross-Entropy is intended for multi-class classification (more than 2 output classes). For binary classification, use Binary Cross-Entropy (bce) instead.")
         self.loss_function = loss_function.lower()
 
         if weight_init.lower() not in valid_weight_inits:
-            raise ValueError(f"weight_init must be one of: {sorted(valid_weight_inits)}")
+            raise ValueError(f"weight_init harus salah satu dari: {sorted(valid_weight_inits)}")
         self.weight_init = weight_init.lower()
 
         if seed is not None and not isinstance(seed, int):
-            raise ValueError("seed must be an integer or None.")
+            raise ValueError("seed harus integer atau None.")
         self.seed = seed
         
-        if reg_type not in valid_reg_types:
-            raise ValueError(f"reg_type must be one of: {valid_reg_types}")
+        if reg_type not in valid_reg:
+            raise ValueError(f"reg_type tidak ada: {valid_reg}")
         self.reg_type = reg_type
         
         if not isinstance(lambda_param, (int, float)) or lambda_param < 0:
-            raise ValueError("lambda_param must be a non-negative number")
+            raise ValueError("lambda_param harus non-negative number")
         self.lambda_param = lambda_param
 
         self.weights = {}
@@ -134,8 +134,7 @@ class FFNN:
 
             weights[i] = W
             biases[i] = b
-            
-            # Initialize gradient storage
+
             self.weight_gradients[i] = np.zeros_like(W)
             self.bias_gradients[i] = np.zeros_like(b)
         
@@ -150,8 +149,7 @@ class FFNN:
             base_loss = LossFunction.categorical_cross_entropy(y_true, y_pred)
         else:
             raise ValueError(f"Loss function '{self.loss_function}' not found.")
-        
-        # Tambahkan regularisasi jika diperlukan
+
         regularized_loss = LossFunction.compute_regularized_loss(
             base_loss, self.weights, self.reg_type, self.lambda_param
         )
@@ -200,14 +198,12 @@ class FFNN:
         }
         
         for epoch in range(epochs):
-            # Shuffle data
             if self.seed is not None:
                 np.random.seed(self.seed + epoch)
             indices = np.random.permutation(n_samples)
             X_shuffled = X_train[indices]
             y_shuffled = y_train[indices]
-            
-            # Mini-batch training
+
             epoch_losses = []
             for i in range(0, n_samples, batch_size):
                 X_batch = X_shuffled[i:i+batch_size]
@@ -218,14 +214,12 @@ class FFNN:
             
             avg_train_loss = np.mean(epoch_losses)
             self.history["train_loss"].append(avg_train_loss)
-            
-            # Validation
+ 
             if X_val is not None and y_val is not None:
                 val_pred = self.forward(X_val)
                 val_loss = self.compute_loss(y_val, val_pred)
                 self.history["val_loss"].append(val_loss)
-            
-            # Print progress
+
             if verbose == 1:
                 if X_val is not None and y_val is not None:
                     print(f"Epoch {epoch+1}/{epochs} - loss: {avg_train_loss:.4f} - val_loss: {val_loss:.4f}")
@@ -246,8 +240,7 @@ class FFNN:
             print(f"  - Activation: {self.activation_funcs[i-1]}")
             print(f"  - Weights shape: {self.weights[i].shape}")
             print(f"  - Bias shape: {self.biases[i].shape}")
-            
-            # Print a small sample of weights and gradients if they are large
+
             if self.weights[i].size > 10:
                 print(f"  - Sample weights: {self.weights[i].flatten()[:5]} ...")
             else:

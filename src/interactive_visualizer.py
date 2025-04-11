@@ -72,12 +72,10 @@ class InteractiveVisualizer:
                     bgcolor='rgba(255,255,255,0.5)'  # semi-transparent
                 ))
 
-        # Add bias nodes
         for i in range(1, num_layers):
             bias_id = f"b{i-1}"
             bias_label = f"Bias {i}"
 
-            # Position based on first neuron in previous layer
             if i - 1 == 0:
                 first_prev = "i0"
             else:
@@ -435,7 +433,6 @@ class InteractiveVisualizer:
                     visible=(i == 0)
                 )
             else:
-                # fallback if data has no variation (just show histogram)
                 kde_line = go.Scatter(x=[], y=[], visible=False)
                 mean_line = go.Scatter(x=[], y=[], visible=False)
 
